@@ -1,0 +1,52 @@
+version: "3"
+
+services:
+  web:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+    volumes:
+      - ./frontend/:/frontend/
+      - node_modules:/frontend/node_modules
+    ports:
+      - 5173:5173
+    environment:
+      - NODE_ENV=development
+    restart: always
+    tty: true
+    depends_on:
+      - server
+    command: yarn run dev
+
+  server:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+    volumes:
+      - ./backend/:/backend/
+    ports:
+      - 8000:8000
+    restart: always
+    tty: true
+    depends_on:
+      - db
+    command: uvicorn app.main:app --reload --host 0.0.0.0 --port 8000
+
+  db:
+    image: postgres:15
+    container_name: postgres-db
+    volumes:
+      - db-store:/var/lib/postgresql/data
+      - ./backend/db/init:/docker-entrypoint-initdb.d
+    environment:
+      ENV LANG: ja_JP.UTF-8 # postgres内の文字コードを指定
+      TZ: Asia/Tokyo # postgres内のTimeZoneを指定
+      POSTGRES_DB: postgres
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+    ports:
+      - 5432:5432
+
+volumes:
+  db-store:
+  node_modules:

@@ -1,0 +1,1 @@
+CREATE DATABASE fastapi_2ch_app_development;
